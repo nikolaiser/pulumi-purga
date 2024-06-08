@@ -15,25 +15,28 @@
 package provider
 
 import (
-	"math/rand"
-	"time"
+	"encoding/json"
+	"fmt"
+	"os"
+	"os/exec"
 
 	p "github.com/pulumi/pulumi-go-provider"
 	"github.com/pulumi/pulumi-go-provider/infer"
+	"github.com/pulumi/pulumi/sdk/v3/go/common/resource"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/tokens"
 )
 
 // Version is initialized by the Go linker to contain the semver of this build.
 var Version string
 
-const Name string = "xyz"
+const Name string = "purga"
 
 func Provider() p.Provider {
 	// We tell the provider what resources it needs to support.
 	// In this case, a single custom resource.
 	return infer.Provider(infer.Options{
 		Resources: []infer.InferredResource{
-			infer.Resource[Random, RandomArgs, RandomState](),
+			infer.Resource[PurgaDeployment, PurgaDeploymentArgs, PurgaDeploymentState](),
 		},
 		ModuleMap: map[tokens.ModuleName]tokens.ModuleName{
 			"provider": "index",
@@ -51,41 +54,127 @@ func Provider() p.Provider {
 // - Delete: Custom logic when the resource is deleted.
 // - Annotate: Describe fields and set defaults for a resource.
 // - WireDependencies: Control how outputs and secrets flows through values.
-type Random struct{}
 
-// Each resource has an input struct, defining what arguments it accepts.
-type RandomArgs struct {
-	// Fields projected into Pulumi must be public and hava a `pulumi:"..."` tag.
-	// The pulumi tag doesn't need to match the field name, but it's generally a
-	// good idea.
-	Length int `pulumi:"length"`
+type PurgaDeployment struct{}
+
+type PurgaDeploymentArgs struct {
+	Flake      string            `pulumi:"flake"`
+	FlakeInput string            `pulumi:"flakeInput"`
+	Config     map[string]string `pulumi:"config"`
+	Host       string            `pulumi:"host"`
 }
 
-// Each resource has a state, describing the fields that exist on the created resource.
-type RandomState struct {
-	// It is generally a good idea to embed args in outputs, but it isn't strictly necessary.
-	RandomArgs
-	// Here we define a required output called result.
-	Result string `pulumi:"result"`
+type PurgaDeploymentState struct {
+	PurgaDeploymentArgs
+	FlakeRevision string `pulumi:"flakeRevision"`
 }
 
-// All resources must implement Create at a minimum.
-func (Random) Create(ctx p.Context, name string, input RandomArgs, preview bool) (string, RandomState, error) {
-	state := RandomState{RandomArgs: input}
+func getRevision(ctx p.Context, args PurgaDeploymentArgs) (string, error) {
+	flakeRevisionCmd := exec.CommandContext(ctx, "/bin/sh", "-c", "nix flake metadata %s --no-write-lock-file --json | jq '.revision'", args.Flake)
+	revisionBytes, err := flakeRevisionCmd.Output()
+	return string(revisionBytes), err
+}
+
+func deploy(ctx p.Context, args PurgaDeploymentArgs) error {
+	configJsonBytes, err := json.Marshal(args.Config)
+	if err != nil {
+		return err
+	}
+
+	configJson := string(configJsonBytes)
+
+	deployCommand := fmt.Sprint("f=$(mktemp); echo '", configJson, "' > $f ; nixos-rebuild switch < /dev/null --use-remote-sudo --target-host ", args.Host, " --show-trace --flake \"", args.Flake, "\";rm-rf $f")
+
+	deployCmd := exec.CommandContext(ctx, "/bin/sh", "-c", deployCommand)
+	deployCmd.Env = os.Environ()
+	deployCmd.Env = append(deployCmd.Env, "NIX_SSHOPTS=\"-t -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null\"")
+
+	_, err = deployCmd.Output()
+	return err
+}
+
+func (PurgaDeployment) Create(ctx p.Context, name string, args PurgaDeploymentArgs, preview bool) (string, PurgaDeploymentState, error) {
+	state := PurgaDeploymentState{PurgaDeploymentArgs: args}
+
+	id, err := resource.NewUniqueHex(name, 8, 0)
+	if err != nil {
+		return id, state, err
+	}
+
+	revision, err := getRevision(ctx, args)
+	if err != nil {
+		return id, state, err
+	}
+
+	state.FlakeRevision = revision
+
 	if preview {
-		return name, state, nil
+		return id, state, nil
 	}
-	state.Result = makeRandom(input.Length)
-	return name, state, nil
+
+	err = deploy(ctx, args)
+
+	return id, state, err
 }
 
-func makeRandom(length int) string {
-	seededRand := rand.New(rand.NewSource(time.Now().UnixNano()))
-	charset := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
-
-	result := make([]rune, length)
-	for i := range result {
-		result[i] = charset[seededRand.Intn(len(charset))]
+func compareMaps(map1, map2 map[string]string) bool {
+	if len(map1) != len(map2) {
+		return false
 	}
-	return string(result)
+
+	for key, value := range map1 {
+		if map2Value, ok := map2[key]; !ok || map2Value != value {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (PurgaDeployment) Diff(ctx p.Context, id string, oldState PurgaDeploymentState, newArgs PurgaDeploymentArgs) (p.DiffResponse, error) {
+	response := p.DiffResponse{DeleteBeforeReplace: false}
+
+	flakeChanged := newArgs.Flake != oldState.Flake
+	flakeInputChanged := newArgs.FlakeInput != oldState.FlakeInput
+	hostChanged := newArgs.Host != oldState.Host
+	configChanged := compareMaps(newArgs.Config, oldState.Config)
+
+	if flakeChanged || flakeInputChanged || hostChanged || configChanged {
+		response.HasChanges = true
+		return response, nil
+	}
+
+	revision, err := getRevision(ctx, newArgs)
+	if err != nil {
+		return response, err
+	}
+
+	revisionChanged := revision != oldState.FlakeRevision
+
+	if revisionChanged {
+		response.HasChanges = true
+	} else {
+		response.HasChanges = false
+	}
+
+	return response, nil
+}
+
+func (PurgaDeployment) Update(ctx p.Context, id string, oldState PurgaDeploymentState, newArgs PurgaDeploymentArgs, preview bool) (PurgaDeploymentState, error) {
+	state := PurgaDeploymentState{PurgaDeploymentArgs: newArgs}
+
+	revision, err := getRevision(ctx, newArgs)
+	if err != nil {
+		return state, err
+	}
+
+	state.FlakeRevision = revision
+
+	if preview {
+		return state, nil
+	}
+
+	err = deploy(ctx, newArgs)
+
+	return state, err
 }

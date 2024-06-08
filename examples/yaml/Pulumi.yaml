@@ -1,13 +1,13 @@
-name: provider-xyz-native
+name: provider-purga-native
 runtime: yaml
 plugins:
   providers:
-    - name: xyz
+    - name: purga
       path: ../../bin
 
 resources:
   myRandomResource:
-    type: xyz:Random
+    type: purga:Random
     properties:
       length: 24
 

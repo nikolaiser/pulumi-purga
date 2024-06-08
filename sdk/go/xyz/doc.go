@@ -1,2 +1,2 @@
-// Package xyz exports types, functions, subpackages for provisioning xyz resources.
-package xyz
+// Package purga exports types, functions, subpackages for provisioning purga resources.
+package purga

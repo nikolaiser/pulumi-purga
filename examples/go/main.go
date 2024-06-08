@@ -1,13 +1,13 @@
 package main
 
 import (
-	"github.com/pulumi/pulumi-xyz/sdk/go/xyz"
+	"github.com/pulumi/pulumi-purga/sdk/go/purga"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
 func main() {
 	pulumi.Run(func(ctx *pulumi.Context) error {
-		myRandomResource, err := xyz.NewRandom(ctx, "myRandomResource", &xyz.RandomArgs{
+		myRandomResource, err := purga.NewRandom(ctx, "myRandomResource", &purga.RandomArgs{
 			Length: pulumi.Int(24),
 		})
 		if err != nil {

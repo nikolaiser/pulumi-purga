@@ -1,4 +1,4 @@
-module github.com/pulumi/pulumi-purga/provider
+module github.com/nikolaiser/pulumi-purga/provider
 
 go 1.21
 

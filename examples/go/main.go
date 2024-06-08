@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/pulumi/pulumi-purga/sdk/go/purga"
+	"github.com/nikolaiser/pulumi-purga/sdk/go/purga"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 

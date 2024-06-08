@@ -1,4 +1,4 @@
-module github.com/pulumi/pulumi-purga/sdk
+module github.com/nikolaiser/pulumi-purga/sdk
 
 go 1.21
 

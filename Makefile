@@ -2,7 +2,7 @@ PROJECT_NAME := Pulumi purga Resource Provider
 
 PACK             := purga
 PACKDIR          := sdk
-PROJECT          := github.com/pulumi/pulumi-purga
+PROJECT          := github.com/nikolaiser/pulumi-purga
 NODE_MODULE_NAME := @pulumi/purga
 NUGET_PKG_NAME   := Pulumi.purga
 

@@ -7,9 +7,9 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Pulumi.Serialization;
 
-namespace Pulumi.purga
+namespace Pulumi.Purga
 {
-    [purgaResourceType("pulumi:providers:purga")]
+    [PurgaResourceType("pulumi:providers:purga")]
     public partial class Provider : global::Pulumi.ProviderResource
     {
         /// <summary>

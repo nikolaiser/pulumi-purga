@@ -10,18 +10,18 @@ export type Provider = import("./provider").Provider;
 export const Provider: typeof import("./provider").Provider = null as any;
 utilities.lazyLoad(exports, ["Provider"], () => require("./provider"));
 
-export { RandomArgs } from "./random";
-export type Random = import("./random").Random;
-export const Random: typeof import("./random").Random = null as any;
-utilities.lazyLoad(exports, ["Random"], () => require("./random"));
+export { PurgaDeploymentArgs } from "./purgaDeployment";
+export type PurgaDeployment = import("./purgaDeployment").PurgaDeployment;
+export const PurgaDeployment: typeof import("./purgaDeployment").PurgaDeployment = null as any;
+utilities.lazyLoad(exports, ["PurgaDeployment"], () => require("./purgaDeployment"));
 
 
 const _module = {
     version: utilities.getVersion(),
     construct: (name: string, type: string, urn: string): pulumi.Resource => {
         switch (type) {
-            case "purga:index:Random":
-                return new Random(name, <any>undefined, { urn })
+            case "purga:index:PurgaDeployment":
+                return new PurgaDeployment(name, <any>undefined, { urn })
             default:
                 throw new Error(`unknown resource type ${type}`);
         }

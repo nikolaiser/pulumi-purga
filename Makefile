@@ -17,6 +17,8 @@ WORKING_DIR     := $(shell pwd)
 EXAMPLES_DIR    := ${WORKING_DIR}/examples/yaml
 TESTPARALLELISM := 4
 
+
+
 ensure::
 	cd provider && go mod tidy
 	cd sdk && go mod tidy
@@ -30,6 +32,9 @@ provider_debug::
 
 test_provider::
 	cd tests && go test -short -v -count=1 -cover -timeout 2h -parallel ${TESTPARALLELISM} ./...
+
+schema::
+	pulumi package get-schema ./bin/pulumi-resource-purga > provider/cmd/pulumi-resource-purga/schema.json
 
 dotnet_sdk:: DOTNET_VERSION := $(shell pulumictl get version --language dotnet)
 dotnet_sdk::
@@ -109,7 +114,7 @@ devcontainer::
 
 .PHONY: build
 
-build:: provider dotnet_sdk go_sdk nodejs_sdk #python_sdk
+build:: provider schema dotnet_sdk go_sdk nodejs_sdk #python_sdk
 
 # Required for the codegen action that runs in pulumi/pulumi
 only_build:: build

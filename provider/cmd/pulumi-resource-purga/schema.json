@@ -1,0 +1,65 @@
+{
+  "name": "purga",
+  "meta": {
+    "moduleFormat": "(.*)"
+  },
+  "config": {},
+  "provider": {
+    "type": "object"
+  },
+  "resources": {
+    "purga:index:PurgaDeployment": {
+      "properties": {
+        "config": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "flake": {
+          "type": "string"
+        },
+        "flakeInput": {
+          "type": "string"
+        },
+        "flakeRevision": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "config",
+        "flake",
+        "flakeInput",
+        "flakeRevision",
+        "host"
+      ],
+      "inputProperties": {
+        "config": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "flake": {
+          "type": "string"
+        },
+        "flakeInput": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "config",
+        "flake",
+        "flakeInput",
+        "host"
+      ]
+    }
+  }
+}

@@ -12,8 +12,11 @@ namespace Pulumi.Purga
     [PurgaResourceType("purga:index:PurgaDeployment")]
     public partial class PurgaDeployment : global::Pulumi.CustomResource
     {
-        [Output("config")]
-        public Output<ImmutableDictionary<string, string>> Config { get; private set; } = null!;
+        [Output("configArrayString")]
+        public Output<ImmutableDictionary<string, ImmutableArray<string>>> ConfigArrayString { get; private set; } = null!;
+
+        [Output("configString")]
+        public Output<ImmutableDictionary<string, string>> ConfigString { get; private set; } = null!;
 
         [Output("flake")]
         public Output<string> Flake { get; private set; } = null!;
@@ -72,12 +75,20 @@ namespace Pulumi.Purga
 
     public sealed class PurgaDeploymentArgs : global::Pulumi.ResourceArgs
     {
-        [Input("config", required: true)]
-        private InputMap<string>? _config;
-        public InputMap<string> Config
+        [Input("configArrayString", required: true)]
+        private InputMap<ImmutableArray<string>>? _configArrayString;
+        public InputMap<ImmutableArray<string>> ConfigArrayString
         {
-            get => _config ?? (_config = new InputMap<string>());
-            set => _config = value;
+            get => _configArrayString ?? (_configArrayString = new InputMap<ImmutableArray<string>>());
+            set => _configArrayString = value;
+        }
+
+        [Input("configString", required: true)]
+        private InputMap<string>? _configString;
+        public InputMap<string> ConfigString
+        {
+            get => _configString ?? (_configString = new InputMap<string>());
+            set => _configString = value;
         }
 
         [Input("flake", required: true)]

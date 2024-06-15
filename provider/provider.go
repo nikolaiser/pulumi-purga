@@ -58,10 +58,11 @@ func Provider() p.Provider {
 type PurgaDeployment struct{}
 
 type PurgaDeploymentArgs struct {
-	Flake      string            `pulumi:"flake"`
-	FlakeInput string            `pulumi:"flakeInput"`
-	Config     map[string]string `pulumi:"config"`
-	Host       string            `pulumi:"host"`
+	Flake             string              `pulumi:"flake"`
+	FlakeInput        string              `pulumi:"flakeInput"`
+	ConfigString      map[string]string   `pulumi:"configString"`
+	ConfigArrayString map[string][]string `pulumi:"configArrayString"`
+	Host              string              `pulumi:"host"`
 }
 
 type PurgaDeploymentState struct {
@@ -76,7 +77,17 @@ func getRevision(ctx p.Context, args PurgaDeploymentArgs) (string, error) {
 }
 
 func deploy(ctx p.Context, args PurgaDeploymentArgs) error {
-	configJsonBytes, err := json.Marshal(args.Config)
+	configMap := make(map[string]interface{})
+
+	for key, value := range args.ConfigArrayString {
+		configMap[key] = value
+	}
+
+	for key, value := range args.ConfigString {
+		configMap[key] = value
+	}
+
+	configJsonBytes, err := json.Marshal(configMap)
 	if err != nil {
 		return err
 	}
@@ -117,7 +128,7 @@ func (PurgaDeployment) Create(ctx p.Context, name string, args PurgaDeploymentAr
 	return id, state, err
 }
 
-func compareMaps(map1, map2 map[string]string) bool {
+func compareStringMaps(map1, map2 map[string]string) bool {
 	if len(map1) != len(map2) {
 		return false
 	}
@@ -131,15 +142,46 @@ func compareMaps(map1, map2 map[string]string) bool {
 	return true
 }
 
+func compareSlices(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func compareStringArrayMaps(map1, map2 map[string][]string) bool {
+	if len(map1) != len(map2) {
+		return false
+	}
+
+	for k, v1 := range map1 {
+		v2, ok := map2[k]
+		if !ok {
+			return false
+		}
+		if !compareSlices(v1, v2) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (PurgaDeployment) Diff(ctx p.Context, id string, oldState PurgaDeploymentState, newArgs PurgaDeploymentArgs) (p.DiffResponse, error) {
 	response := p.DiffResponse{DeleteBeforeReplace: false}
 
 	flakeChanged := newArgs.Flake != oldState.Flake
 	flakeInputChanged := newArgs.FlakeInput != oldState.FlakeInput
 	hostChanged := newArgs.Host != oldState.Host
-	configChanged := compareMaps(newArgs.Config, oldState.Config)
+	configStringChanged := compareStringMaps(newArgs.ConfigString, oldState.ConfigString)
+	configArrayStringChanged := compareStringArrayMaps(newArgs.ConfigArrayString, oldState.ConfigArrayString)
 
-	if flakeChanged || flakeInputChanged || hostChanged || configChanged {
+	if flakeChanged || flakeInputChanged || hostChanged || configStringChanged || configArrayStringChanged {
 		response.HasChanges = true
 		return response, nil
 	}

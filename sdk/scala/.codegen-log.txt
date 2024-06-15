@@ -1,6 +1,6 @@
 Warning: Setting GITHUB_TOKEN environment variable might solve some problems
 Info: Generating package 'purga:0.1.1' into '.out/codegen/purga/0.1.1'
- - Besom version   : 0.3.1
+ - Besom version   : 0.3.2
  - Scala version   : 3.3.1
  - Java version    : 11
 

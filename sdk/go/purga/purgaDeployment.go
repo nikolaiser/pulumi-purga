@@ -15,11 +15,12 @@ import (
 type PurgaDeployment struct {
 	pulumi.CustomResourceState
 
-	Config        pulumi.StringMapOutput `pulumi:"config"`
-	Flake         pulumi.StringOutput    `pulumi:"flake"`
-	FlakeInput    pulumi.StringOutput    `pulumi:"flakeInput"`
-	FlakeRevision pulumi.StringOutput    `pulumi:"flakeRevision"`
-	Host          pulumi.StringOutput    `pulumi:"host"`
+	ConfigArrayString pulumi.StringArrayMapOutput `pulumi:"configArrayString"`
+	ConfigString      pulumi.StringMapOutput      `pulumi:"configString"`
+	Flake             pulumi.StringOutput         `pulumi:"flake"`
+	FlakeInput        pulumi.StringOutput         `pulumi:"flakeInput"`
+	FlakeRevision     pulumi.StringOutput         `pulumi:"flakeRevision"`
+	Host              pulumi.StringOutput         `pulumi:"host"`
 }
 
 // NewPurgaDeployment registers a new resource with the given unique name, arguments, and options.
@@ -29,8 +30,11 @@ func NewPurgaDeployment(ctx *pulumi.Context,
 		return nil, errors.New("missing one or more required arguments")
 	}
 
-	if args.Config == nil {
-		return nil, errors.New("invalid value for required argument 'Config'")
+	if args.ConfigArrayString == nil {
+		return nil, errors.New("invalid value for required argument 'ConfigArrayString'")
+	}
+	if args.ConfigString == nil {
+		return nil, errors.New("invalid value for required argument 'ConfigString'")
 	}
 	if args.Flake == nil {
 		return nil, errors.New("invalid value for required argument 'Flake'")
@@ -74,18 +78,20 @@ func (PurgaDeploymentState) ElementType() reflect.Type {
 }
 
 type purgaDeploymentArgs struct {
-	Config     map[string]string `pulumi:"config"`
-	Flake      string            `pulumi:"flake"`
-	FlakeInput string            `pulumi:"flakeInput"`
-	Host       string            `pulumi:"host"`
+	ConfigArrayString map[string][]string `pulumi:"configArrayString"`
+	ConfigString      map[string]string   `pulumi:"configString"`
+	Flake             string              `pulumi:"flake"`
+	FlakeInput        string              `pulumi:"flakeInput"`
+	Host              string              `pulumi:"host"`
 }
 
 // The set of arguments for constructing a PurgaDeployment resource.
 type PurgaDeploymentArgs struct {
-	Config     pulumi.StringMapInput
-	Flake      pulumi.StringInput
-	FlakeInput pulumi.StringInput
-	Host       pulumi.StringInput
+	ConfigArrayString pulumi.StringArrayMapInput
+	ConfigString      pulumi.StringMapInput
+	Flake             pulumi.StringInput
+	FlakeInput        pulumi.StringInput
+	Host              pulumi.StringInput
 }
 
 func (PurgaDeploymentArgs) ElementType() reflect.Type {
@@ -125,8 +131,12 @@ func (o PurgaDeploymentOutput) ToPurgaDeploymentOutputWithContext(ctx context.Co
 	return o
 }
 
-func (o PurgaDeploymentOutput) Config() pulumi.StringMapOutput {
-	return o.ApplyT(func(v *PurgaDeployment) pulumi.StringMapOutput { return v.Config }).(pulumi.StringMapOutput)
+func (o PurgaDeploymentOutput) ConfigArrayString() pulumi.StringArrayMapOutput {
+	return o.ApplyT(func(v *PurgaDeployment) pulumi.StringArrayMapOutput { return v.ConfigArrayString }).(pulumi.StringArrayMapOutput)
+}
+
+func (o PurgaDeploymentOutput) ConfigString() pulumi.StringMapOutput {
+	return o.ApplyT(func(v *PurgaDeployment) pulumi.StringMapOutput { return v.ConfigString }).(pulumi.StringMapOutput)
 }
 
 func (o PurgaDeploymentOutput) Flake() pulumi.StringOutput {

@@ -31,7 +31,8 @@ export class PurgaDeployment extends pulumi.CustomResource {
         return obj['__pulumiType'] === PurgaDeployment.__pulumiType;
     }
 
-    public readonly config!: pulumi.Output<{[key: string]: string}>;
+    public readonly configArrayString!: pulumi.Output<{[key: string]: string[]}>;
+    public readonly configString!: pulumi.Output<{[key: string]: string}>;
     public readonly flake!: pulumi.Output<string>;
     public readonly flakeInput!: pulumi.Output<string>;
     public /*out*/ readonly flakeRevision!: pulumi.Output<string>;
@@ -48,8 +49,11 @@ export class PurgaDeployment extends pulumi.CustomResource {
         let resourceInputs: pulumi.Inputs = {};
         opts = opts || {};
         if (!opts.id) {
-            if ((!args || args.config === undefined) && !opts.urn) {
-                throw new Error("Missing required property 'config'");
+            if ((!args || args.configArrayString === undefined) && !opts.urn) {
+                throw new Error("Missing required property 'configArrayString'");
+            }
+            if ((!args || args.configString === undefined) && !opts.urn) {
+                throw new Error("Missing required property 'configString'");
             }
             if ((!args || args.flake === undefined) && !opts.urn) {
                 throw new Error("Missing required property 'flake'");
@@ -60,13 +64,15 @@ export class PurgaDeployment extends pulumi.CustomResource {
             if ((!args || args.host === undefined) && !opts.urn) {
                 throw new Error("Missing required property 'host'");
             }
-            resourceInputs["config"] = args ? args.config : undefined;
+            resourceInputs["configArrayString"] = args ? args.configArrayString : undefined;
+            resourceInputs["configString"] = args ? args.configString : undefined;
             resourceInputs["flake"] = args ? args.flake : undefined;
             resourceInputs["flakeInput"] = args ? args.flakeInput : undefined;
             resourceInputs["host"] = args ? args.host : undefined;
             resourceInputs["flakeRevision"] = undefined /*out*/;
         } else {
-            resourceInputs["config"] = undefined /*out*/;
+            resourceInputs["configArrayString"] = undefined /*out*/;
+            resourceInputs["configString"] = undefined /*out*/;
             resourceInputs["flake"] = undefined /*out*/;
             resourceInputs["flakeInput"] = undefined /*out*/;
             resourceInputs["flakeRevision"] = undefined /*out*/;
@@ -81,7 +87,8 @@ export class PurgaDeployment extends pulumi.CustomResource {
  * The set of arguments for constructing a PurgaDeployment resource.
  */
 export interface PurgaDeploymentArgs {
-    config: pulumi.Input<{[key: string]: pulumi.Input<string>}>;
+    configArrayString: pulumi.Input<{[key: string]: pulumi.Input<pulumi.Input<string>[]>}>;
+    configString: pulumi.Input<{[key: string]: pulumi.Input<string>}>;
     flake: pulumi.Input<string>;
     flakeInput: pulumi.Input<string>;
     host: pulumi.Input<string>;

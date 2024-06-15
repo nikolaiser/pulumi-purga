@@ -8,7 +8,7 @@
 
 //> using publish.name "besom-purga"
 //> using publish.organization "com.nikolaiser"
-//> using publish.version "0.1.1-core.0.3"
+//> using publish.version "0.1.3-core.0.3"
 //> using publish.url "https://github.com/nikolaiser/pulumi-purga"
 //> using publish.vcs "github:nikolaiser/pulumi-purga"
 //> using publish.license "MIT"
